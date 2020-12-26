@@ -1,5 +1,9 @@
 # cx_Oracle_async
+[![fury](https://badge.fury.io/py/cx-Oracle-async.svg)](https://badge.fury.io/py/cx-Oracle-async)
 [![licence](https://img.shields.io/github/license/GoodManWEN/cx_Oracle_async)](https://github.com/GoodManWEN/cx_Oracle_async/blob/master/LICENSE)
+[![pyversions](https://img.shields.io/pypi/pyversions/cx-Oracle-async.svg)](https://pypi.org/project/cx-Oracle-async/)
+[![Publish](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Publish/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Publish)
+[![Build](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Build/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Build)
 
 A very simple asynchronous wrapper that makes you can access to Oracle in asyncio programs.
 

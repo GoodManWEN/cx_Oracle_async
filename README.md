@@ -35,19 +35,16 @@ async def main():
         minsize = 2,
         maxsize = 4,
     )
+
     async with oracle_pool.acquire() as connection:
         async with connection.cursor() as cursor:
             # single fetch 
-            sql_1 = """
-                SELECT * FROM SCOTT.DEPT WHERE deptno = :a
-            """
+            sql_1 = "SELECT * FROM SCOTT.DEPT WHERE deptno = :a"
             await cursor.execute(sql_1 , (10 , ))
-            print( await cursor.fetchone() )
+            print(await cursor.fetchone())
             
             # multiple inert
-            sql_2 = """
-                INSERT INTO SCOTT.DEPT(deptno , dname) VALUES (:a , :b)
-            """
+            sql_2 = "INSERT INTO SCOTT.DEPT(deptno , dname) VALUES (:a , :b)"
             sql_2_data = [
                 [60 , "Hello"],
                 [70 , "World"], 
@@ -56,11 +53,9 @@ async def main():
             await connection.commit()
             
             # multiple fetch
-            sql_3 = """
-                SELECT * FROM SCOTT.DEPT WHERE deptno >= :a
-            """
+            sql_3 = "SELECT * FROM SCOTT.DEPT WHERE deptno >= :a"
             await cursor.execute(sql_3 , (60 , ))
-            print( await cursor.fetchall() )
+            print(await cursor.fetchall())
 
 if __name__ == '__main__':
     asyncio.run(main())

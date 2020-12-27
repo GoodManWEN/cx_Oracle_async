@@ -1,5 +1,6 @@
 import asyncio
 import cx_Oracle as csor
+import platform
 from concurrent.futures import ThreadPoolExecutor
 
 class AsyncCursorWarper:
@@ -87,7 +88,14 @@ class AsyncPoolWarper:
 
         Issue if you have better implementation.
         '''
-        self._thread_pool = ThreadPoolExecutor() 
+        pltfm = platform.system()
+        if pltfm == 'Windows':
+            _t_num = 512
+        elif pltfm == 'Linux':
+            _t_num = 1024
+        else:
+            raise RuntimeError("We havent decided how many threads should acquire on your platform. Maybe you have to modify source code your self.")
+        self._thread_pool = ThreadPoolExecutor(max_workers = _t_num) 
         self._loop = loop 
         self._pool = pool 
 

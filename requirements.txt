@@ -1,1 +1,2 @@
 cx-Oracle>=8.1.0
+ThreadPoolExecutorPlus>=0.1.1

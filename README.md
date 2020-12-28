@@ -10,7 +10,7 @@ A very simple asynchronous wrapper that makes you can access to Oracle in asynci
 Easy to use , buy may not the best practice for efficiency concern.
 
 ## Requirements
-- [cx_Oracle >= 8.1.0](https://github.com/aio-libs/aiohttp) (Take into consideration that author of cx_Oracle said he's trying to implement asyncio support , APIs maybe change in future version. Switch to 8.1.0 if there's something wrong makes it not gonna work.)
+- [cx_Oracle >= 8.1.0](https://github.com/oracle/python-cx_Oracle) (Take into consideration that author of cx_Oracle said he's trying to implement asyncio support , APIs maybe change in future version. Switch to 8.1.0 if there's something wrong makes it not gonna work.)
 
 ## Install
 

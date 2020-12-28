@@ -1,9 +1,8 @@
 import asyncio
 import cx_Oracle as csor
-import platform
-from concurrent.futures import ThreadPoolExecutor
+from ThreadPoolExecutorPlus import ThreadPoolExecutor
 
-class AsyncCursorWarper:
+class AsyncCursorWarpper:
 
     def __init__(self , loop , thread_pool , cursor):
         self._loop = loop
@@ -29,8 +28,11 @@ class AsyncCursorWarper:
     async def fetchone(self):
         return await self._loop.run_in_executor(self._thread_pool , self._cursor.fetchone)
 
+    async def var(self, args):
+        return await self._loop.run_in_executor(self._thread_pool , self._cursor.var, args)
 
-class AsyncCursorWarper_context:
+
+class AsyncCursorWarpper_context:
 
     def __init__(self , loop , thread_pool , conn):
         self._loop = loop
@@ -39,12 +41,12 @@ class AsyncCursorWarper_context:
 
     async def __aenter__(self):
         cursor = await self._loop.run_in_executor(self._thread_pool , self._conn.cursor)
-        return AsyncCursorWarper(self._loop , self._thread_pool , cursor)
+        return AsyncCursorWarpper(self._loop , self._thread_pool , cursor)
 
     async def __aexit__(self, exc_type, exc, tb):
         return
 
-class AsyncConnectionWarper:
+class AsyncConnectionWarpper:
 
     def __init__(self , loop , thread_pool , conn):
         self._loop = loop
@@ -52,12 +54,12 @@ class AsyncConnectionWarper:
         self._conn = conn 
 
     def cursor(self):
-        return AsyncCursorWarper_context(self._loop , self._thread_pool , self._conn)
+        return AsyncCursorWarpper_context(self._loop , self._thread_pool , self._conn)
 
     async def commit(self):
         await self._loop.run_in_executor(self._thread_pool , self._conn.commit)
 
-class AsyncConnectionWarper_context:
+class AsyncConnectionWarpper_context:
 
     def __init__(self , loop , thread_pool , pool ):
         self._loop = loop
@@ -66,12 +68,12 @@ class AsyncConnectionWarper_context:
 
     async def __aenter__(self):
         self._conn = await self._loop.run_in_executor(self._thread_pool , self._pool.acquire) 
-        return AsyncConnectionWarper(self._loop , self._thread_pool , self._conn)
+        return AsyncConnectionWarpper(self._loop , self._thread_pool , self._conn)
 
     async def __aexit__(self, exc_type, exc, tb):
         await self._loop.run_in_executor(self._thread_pool , self._pool.release , self._conn)
 
-class AsyncPoolWarper:
+class AsyncPoolWarpper:
     
     def __init__(self , pool , loop = None):
 
@@ -88,19 +90,12 @@ class AsyncPoolWarper:
 
         Issue if you have better implementation.
         '''
-        pltfm = platform.system()
-        if pltfm == 'Windows':
-            _t_num = 512
-        elif pltfm == 'Linux':
-            _t_num = 1024
-        else:
-            raise RuntimeError("We havent decided how many threads should acquire on your platform. Maybe you have to modify source code your self.")
-        self._thread_pool = ThreadPoolExecutor(max_workers = _t_num) 
+        self._thread_pool = ThreadPoolExecutor() 
         self._loop = loop 
         self._pool = pool 
 
     def acquire(self):
-        return AsyncConnectionWarper_context(self._loop , self._thread_pool , self._pool)
+        return AsyncConnectionWarpper_context(self._loop , self._thread_pool , self._pool)
 
     async def preexciting(self):
 
@@ -114,7 +109,7 @@ async def create_pool(host = 'localhost', port = '1521' , user = 'sys', password
     if loop == None:
         loop = asyncio.get_running_loop()
     pool = csor.SessionPool(user , password , f"{host}:{port}/{db}", min = minsize , max = maxsize , increment = 1 , threaded = True , encoding = encoding)
-    pool = AsyncPoolWarper(pool)
+    pool = AsyncPoolWarpper(pool)
     await pool.preexciting()
     return pool
 

@@ -25,7 +25,7 @@ Easy to use , buy may not the best practice for efficiency concern.
 query type | asynchronous multithreading | synchronous multithreading | synchronous single thread
 -|-|-|-
 fast single line query | 4864.96 q/s | 5859.20 q/s | 8209.536 q/s
-fast single line insertion | N/A (todo) | N/A | N/A
+single line insertion | N/A (todo) | N/A | N/A
 
 */\* Test platform: \*/*<br>
 *AMD Ryzen 3700x*<br>

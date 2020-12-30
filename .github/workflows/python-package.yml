@@ -8,6 +8,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron:  '0 9 1 * *'  # Runs at 09:00 UTC on the 1st of every month
 
 jobs:
   build:
@@ -16,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, ubuntu-latest]
-        python-version: ['3.7', '3.8' , '3.9']
+        python-version: ['3.7' , '3.8' , '3.9']
 
     steps:
     - uses: actions/checkout@v2

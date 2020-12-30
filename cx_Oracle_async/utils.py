@@ -1,6 +1,16 @@
-import asyncio
-import cx_Oracle as csor
 from ThreadPoolExecutorPlus import ThreadPoolExecutor
+import cx_Oracle as csor
+import platform
+import asyncio
+import os
+
+pltfm = platform.system()
+if pltfm == 'Windows':
+    DEFAULT_MAXIMUM_WORKER_NUM = (os.cpu_count() or 1) * 16
+    DEFAULT_MAXIMUM_WORKER_TIMES = 2
+elif pltfm == 'Linux' or pltfm == 'Darwin':
+    DEFAULT_MAXIMUM_WORKER_NUM = (os.cpu_count() or 1) * 32
+    DEFAULT_MAXIMUM_WORKER_TIMES = 3
 
 class AsyncCursorWarpper:
 
@@ -76,10 +86,7 @@ class AsyncConnectionWarpper_context:
 class AsyncPoolWarpper:
     
     def __init__(self , pool , loop = None):
-
-        def _test():
-            ...
-
+        
         if loop == None:
             loop = asyncio.get_running_loop()
         '''
@@ -90,7 +97,8 @@ class AsyncPoolWarpper:
 
         Issue if you have better implementation.
         '''
-        self._thread_pool = ThreadPoolExecutor() 
+        self._thread_pool = ThreadPoolExecutor(max_workers = max(DEFAULT_MAXIMUM_WORKER_NUM , pool.max << DEFAULT_MAXIMUM_WORKER_TIMES)) 
+        self._thread_pool.set_daemon_opts(min_workers = max(4 , pool.min << 1))
         self._loop = loop 
         self._pool = pool 
 
@@ -103,7 +111,6 @@ class AsyncPoolWarpper:
             ...
 
         await self._loop.run_in_executor(self._thread_pool , _test)
-
 
 async def create_pool(host = 'localhost', port = '1521' , user = 'sys', password = '', db = 'orcl', loop = None, minsize = 2 , maxsize = 4 , encoding = 'UTF-8' , autocommit=False):
     if loop == None:

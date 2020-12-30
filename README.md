@@ -21,6 +21,18 @@ Easy to use , buy may not the best practice for efficiency concern.
 - Nearly all the same with aiomysql (with very limited functions of cource)
 - No automaticly date format transition built-in.
 
+## Performance
+query type | asynchronous multithreading | synchronous multithreading | synchronous single thread
+-|-|-|-
+fast single line query | 4864.96 q/s | 5859.20 q/s | 8209.536 q/s
+fast single line insertion | N/A (todo) | N/A | N/A
+
+*/\* Test platform: \*/*<br>
+*AMD Ryzen 3700x*<br>
+*Windows 10 LTSC*<br>
+*Oracle 19c*<br>
+*You can find performance test codes [here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/misc).*
+
 ## Example
 ```Python3
 # all_usages.py

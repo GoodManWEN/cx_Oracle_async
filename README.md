@@ -40,17 +40,14 @@ import asyncio
 import cx_Oracle_async
 
 async def main():
-    loop = asyncio.get_running_loop()
     oracle_pool = await cx_Oracle_async.create_pool(
         host='localhost', 
         port='1521',
         user='user', 
         password='password',
-        db='orcl', 
-        loop=loop,
-        autocommit=False,  # this option has no use.
-        minsize = 2,
-        maxsize = 4,
+        service_name='orcl', 
+        min = 2,
+        max = 4,
     )
 
     async with oracle_pool.acquire() as connection:
@@ -74,6 +71,30 @@ async def main():
             await cursor.execute(sql_3 , (60 , ))
             print(await cursor.fetchall())
 
+    await oracle_pool.close()
+
 if __name__ == '__main__':
     asyncio.run(main())
+```
+
+Or you can connect to database via makedsn:
+```
+# makedsn.py
+import asyncio
+import cx_Oracle_async
+
+async def main():
+    # same api as cx_Oracle.makedsn with 4 limited parameters(host , port , sid , service_name).
+    dsn = cx_Oracle_async.makedsn(host = 'localhost' , port = '1521' , service_name = 'orcl')
+    oracle_pool = await cx_Oracle_async.create_pool(
+        user='user', 
+        password='password',
+        dsn = dsn
+    )
+
+    ...
+
+    await oracle_pool.close()
+
+asyncio.run(main())
 ```

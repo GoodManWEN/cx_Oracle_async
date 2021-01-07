@@ -105,6 +105,9 @@ class AsyncPoolWarpper:
     def acquire(self):
         return AsyncConnectionWarpper_context(self._loop , self._thread_pool , self._pool)
 
+    async def close(self):
+        return await self._loop.run_in_executor(self._thread_pool , self._pool.close)
+
     async def preexciting(self):
 
         def _test():

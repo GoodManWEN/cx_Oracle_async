@@ -1,5 +1,5 @@
 from ThreadPoolExecutorPlus import ThreadPoolExecutor
-import cx_Oracle as csor
+import cx_Oracle as cxor
 import platform
 import asyncio
 import os
@@ -11,6 +11,8 @@ if pltfm == 'Windows':
 elif pltfm == 'Linux' or pltfm == 'Darwin':
     DEFAULT_MAXIMUM_WORKER_NUM = (os.cpu_count() or 1) * 32
     DEFAULT_MAXIMUM_WORKER_TIMES = 3
+
+makedsn = cxor.makedsn
 
 class AsyncCursorWrapper:
 
@@ -115,10 +117,56 @@ class AsyncPoolWrapper:
 
         await self._loop.run_in_executor(self._thread_pool , _test)
 
-async def create_pool(host = 'localhost', port = '1521' , user = 'sys', password = '', db = 'orcl', loop = None, minsize = 2 , maxsize = 4 , encoding = 'UTF-8' , autocommit=False):
+async def create_pool(
+        user=None, 
+        password=None, 
+        dsn=None, 
+        min=2, 
+        max=4, 
+        increment=1, 
+        connectiontype=cxor.Connection, 
+        threaded=True, 
+        getmode=cxor.SPOOL_ATTRVAL_NOWAIT, 
+        events=False, 
+        homogeneous=True, 
+        externalauth=False, 
+        encoding='UTF-8', 
+        edition=None, 
+        timeout=0, 
+        waitTimeout=0, 
+        maxLifetimeSession=0, 
+        sessionCallback=None, 
+        maxSessionsPerShard=0,
+        host='localhost',
+        port='1521',
+        service_name='orcl',
+        sid=None,
+        loop=None
+    ):
     if loop == None:
         loop = asyncio.get_running_loop()
-    pool = csor.SessionPool(user , password , f"{host}:{port}/{db}", min = minsize , max = maxsize , increment = 1 , threaded = True , encoding = encoding)
+    if dsn == None:
+        dsn = makedsn(host = host, port = port, sid = sid , service_name = service_name)
+    pool = cxor.SessionPool(
+        user=user, 
+        password=password, 
+        dsn=dsn, 
+        min=min, 
+        max=max, 
+        increment=increment, 
+        connectiontype=connectiontype, 
+        threaded=threaded, 
+        getmode=getmode, 
+        events=events, 
+        homogeneous=homogeneous, 
+        externalauth=externalauth, 
+        encoding=encoding, 
+        edition=edition, 
+        timeout=timeout, 
+        waitTimeout=waitTimeout, 
+        maxLifetimeSession=maxLifetimeSession, 
+        sessionCallback=sessionCallback, 
+        maxSessionsPerShard=maxSessionsPerShard)
     pool = AsyncPoolWrapper(pool)
     await pool.preexciting()
     return pool

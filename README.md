@@ -33,7 +33,7 @@ single line insertion | N/A (todo) | N/A | N/A
 *Oracle 19c*<br>
 *You can find performance test codes [here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/misc).*
 
-## Example
+## Examples
 ```Python3
 # all_usages.py
 import asyncio
@@ -77,8 +77,8 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
-Or you can connect to database via makedsn:
-```
+Or you can connect to database via makedsn style:
+```Python3
 # makedsn.py
 import asyncio
 import cx_Oracle_async

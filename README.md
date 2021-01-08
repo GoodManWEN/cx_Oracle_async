@@ -18,7 +18,8 @@ Easy to use , buy may not the best practice for efficiency concern.
     pip install cx_Oracle_async
     
 ## Usage
-- Nearly all the same with aiomysql (with very limited functions of cource)
+- Nearly all the same with aiomysql (with very limited functions of cource).
+- If you're connecting to database which is on a different machine with python process , you need to install oracle client module in order to use this library. Check [cx-Oracle's installation guide](https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html).
 - No automaticly date format transition built-in.
 
 ## Performance
@@ -34,6 +35,7 @@ single line insertion | N/A (todo) | N/A | N/A
 *You can find performance test codes [here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/misc).*
 
 ## Examples
+Before running examples , make sure you've already installed a [oracle client](https://github.com/GoodManWEN/cx_Oracle_async#usage) on your machine.
 ```Python3
 # all_usages.py
 import asyncio

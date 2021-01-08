@@ -137,16 +137,19 @@ async def create_pool(
         maxLifetimeSession=0, 
         sessionCallback=None, 
         maxSessionsPerShard=0,
-        host='localhost',
-        port='1521',
-        service_name='orcl',
+        host=None,
+        port=None,
+        service_name=None,
         sid=None,
         loop=None
     ):
     if loop == None:
         loop = asyncio.get_running_loop()
     if dsn == None:
-        dsn = makedsn(host = host, port = port, sid = sid , service_name = service_name)
+        if service_name != None:
+            dsn = makedsn(host = host, port = port, sid = sid , service_name = service_name)
+        else:
+            dsn = makedsn(host = host, port = port, sid = sid)
     pool = cxor.SessionPool(
         user=user, 
         password=password, 

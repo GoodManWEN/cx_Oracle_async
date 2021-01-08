@@ -18,7 +18,8 @@ Easy to use , buy may not the best practice for efficiency concern.
     pip install cx_Oracle_async
     
 ## Usage
-- Nearly all the same with aiomysql (with very limited functions of cource)
+- Nearly all the same with aiomysql (with very limited functions of cource).
+- If you're connecting to database which is on a different machine with python process , you need to install oracle client module in order to use this library. Check [cx-Oracle's installation guide](https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html).
 - No automaticly date format transition built-in.
 
 ## Performance
@@ -33,24 +34,22 @@ single line insertion | N/A (todo) | N/A | N/A
 *Oracle 19c*<br>
 *You can find performance test codes [here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/misc).*
 
-## Example
+## Examples
+Before running examples , make sure you've already installed a [oracle client](https://github.com/GoodManWEN/cx_Oracle_async#usage) on your machine.
 ```Python3
 # all_usages.py
 import asyncio
 import cx_Oracle_async
 
 async def main():
-    loop = asyncio.get_running_loop()
     oracle_pool = await cx_Oracle_async.create_pool(
         host='localhost', 
         port='1521',
         user='user', 
         password='password',
-        db='orcl', 
-        loop=loop,
-        autocommit=False,  # this option has no use.
-        minsize = 2,
-        maxsize = 4,
+        service_name='orcl', 
+        min = 2,
+        max = 4,
     )
 
     async with oracle_pool.acquire() as connection:
@@ -74,6 +73,30 @@ async def main():
             await cursor.execute(sql_3 , (60 , ))
             print(await cursor.fetchall())
 
+    await oracle_pool.close()
+
 if __name__ == '__main__':
     asyncio.run(main())
+```
+
+Or you can connect to database via makedsn style:
+```Python3
+# makedsn.py
+import asyncio
+import cx_Oracle_async
+
+async def main():
+    # same api as cx_Oracle.makedsn with 4 limited parameters(host , port , sid , service_name).
+    dsn = cx_Oracle_async.makedsn(host = 'localhost' , port = '1521' , service_name = 'orcl')
+    oracle_pool = await cx_Oracle_async.create_pool(
+        user='user', 
+        password='password',
+        dsn = dsn
+    )
+
+    ...
+
+    await oracle_pool.close()
+
+asyncio.run(main())
 ```

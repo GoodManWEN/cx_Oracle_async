@@ -137,9 +137,9 @@ async def create_pool(
         maxLifetimeSession=0, 
         sessionCallback=None, 
         maxSessionsPerShard=0,
-        host='localhost',
-        port='1521',
-        service_name='orcl',
+        host=None,
+        port=None,
+        service_name=None,
         sid=None,
         loop=None
     ):

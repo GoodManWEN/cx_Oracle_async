@@ -5,7 +5,7 @@
 [![Publish](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Publish/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Publish)
 [![Build](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Build/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Build)
 
-A very simple asynchronous wrapper that makes you can access to Oracle in asyncio programs.
+A very simple asynchronous wrapper that allows you to get access to the Oracle database in asyncio programs.
 
 Easy to use , buy may not the best practice for efficiency concern.
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
-Or you can connect to database via makedsn style:
+Or you can connect to database via dsn style:
 ```Python
 # makedsn.py
 import asyncio

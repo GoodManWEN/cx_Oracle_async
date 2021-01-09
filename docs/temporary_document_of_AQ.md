@@ -84,7 +84,7 @@ async def features(oracle_pool):
         # Get many
         async for m in queue.deqMany(maxMessages=5):
             print(m.payload.decode(conn.encoding))
-        await queue.enqOne() # clean
+        await queue.deqOne() # clean
         await conn.commit()
 
 

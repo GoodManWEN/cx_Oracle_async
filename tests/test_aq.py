@@ -4,11 +4,43 @@ import pytest
 import asyncio
 import time
 from cx_Oracle_async import *
+import cx_Oracle
+
+async def modify_deqopts(queue , val):
+    queue.deqOptions.wait = val
+
+async def fetch_from_queue_no_wait(oracle_pool , loop):
+    async with oracle_pool.acquire() as conn:
+        queue = await conn.queue("DEMO_RAW_QUEUE")
+        loop.create_task(modify_deqopts(queue , cx_Oracle.DEQ_NO_WAIT))
+        ret = await queue.deqOne()
+        if ret:
+            ret = ret.payload.decode(conn.encoding)
+        await conn.commit()
+        return ret
+
+async def fetch_from_queue_wait_forever(oracle_pool , loop):
+    async with oracle_pool.acquire() as conn:
+        queue = await conn.queue("DEMO_RAW_QUEUE")
+        loop.create_task(modify_deqopts(queue , cx_Oracle.DEQ_WAIT_FOREVER))
+        ret = await queue.deqOne()
+        if ret:
+            ret = ret.payload.decode(conn.encoding)
+        return ret
+
+async def put_into_queue(oracle_pool , loop):
+    await asyncio.sleep(2)
+    async with oracle_pool.acquire() as conn:
+        queue = await conn.queue("DEMO_RAW_QUEUE")
+        await queue.enqOne(conn.msgproperties(payload='Hello World'))
+        await conn.commit()
 
 @pytest.mark.asyncio
 async def test_multiquery():
+    loop = asyncio.get_running_loop()
     dsn  = makedsn('localhost','1521',sid='xe')
-    async with create_pool(user='system',password='oracle',dsn=dsn) as oracle_pool:
+    INAQ = 0.5
+    async with create_pool(user='system',password='oracle',dsn=dsn,max=4) as oracle_pool:
         async with oracle_pool.acquire() as conn:
             async with conn.cursor() as cursor:
                 try:
@@ -124,3 +156,20 @@ async def test_multiquery():
                     res.append(m.payload.decode(conn.encoding))
                 ed_time = time.time()
                 assert (ed_time - st_time) <= 0.5
+
+        # test aq options
+        st_time = time.time()
+        _task = loop.create_task(fetch_from_queue_no_wait(oracle_pool , loop))
+        result = await _task
+        ed_time = time.time()
+        assert result == None
+        assert (ed_time - st_time) <= INAQ
+
+        #
+        st_time = time.time()
+        _task = loop.create_task(fetch_from_queue_wait_forever(oracle_pool , loop))
+        loop.create_task(put_into_queue(oracle_pool , loop))
+        result = await _task
+        ed_time = time.time()
+        assert result == "Hello World"
+        assert (2 - INAQ) <= (ed_time - st_time) <= (2 + INAQ)

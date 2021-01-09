@@ -10,7 +10,7 @@ class Counter:
         self.fail = [0 for _ in range(num)]
 
 def single_thread(pool , counter , _id):
-    SQL = "SELECT DEPTNO FROM SCOTT.DEPT WHERE DEPTNO = 10"
+    SQL = 'SELECT DEPTNO FROM "SCOTT"."DEPT" WHERE DEPTNO = 10'
     connection = pool.acquire()
     cursor = connection.cursor()
     while True:
@@ -23,7 +23,8 @@ def single_thread(pool , counter , _id):
         # break
 
 THREAD_NUM = (os.cpu_count() or 1) << 1
-pool = cx_Oracle.SessionPool("system", "123456", "localhost:1521/orcl" , min =1 , max = 4 , increment = 1 , threaded = True , encoding = 'UTF-8')
+dsn = cx_Oracle.makedsn(host = 'localhost' , port = '1521' , service_name = 'orcl')
+pool = cx_Oracle.SessionPool("system", "123456", dsn , min =1 , max = 4 , increment = 1 , threaded = True , encoding = 'UTF-8')
 counter = Counter(THREAD_NUM)
 with ThreadPoolExecutor(max_workers = THREAD_NUM << 5) as executor:
     for _ in range(THREAD_NUM):

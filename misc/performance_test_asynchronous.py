@@ -5,7 +5,7 @@ class Counter:
         self.fail = 0
 
 async def single_thread_fetching(oracle_pool , counter):
-    SQL = "SELECT DEPTNO FROM SCOTT.DEPT WHERE DEPTNO = 10"
+    SQL = 'SELECT DEPTNO FROM "SCOTT"."DEPT" WHERE DEPTNO = 10'
     async with oracle_pool.acquire() as connection:
         async with connection.cursor() as cursor:
             while True:
@@ -30,11 +30,10 @@ async def main():
                                 port='1521',
                                 user='system', 
                                 password='123456',
-                                db='orcl', 
+                                service_name='orcl', 
                                 loop=loop,
-                                autocommit=False,
-                                minsize = 2,
-                                maxsize = THREAD_NUM,
+                                min = 2,
+                                max = THREAD_NUM,
                         )
     counter = Counter()
     loop = asyncio.get_running_loop()

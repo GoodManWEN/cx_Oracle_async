@@ -18,14 +18,15 @@ Easy to use , buy may not the best practice for efficiency concern.
     pip install cx_Oracle_async
     
 ## Usage
-- Nearly all the same with aiomysql (with very limited functions of cource).
+- Nearly all the same with aiomysql (with very limited functions) , you can do execute , executemany , commit statement etc.
 - If you're connecting to database which is on a different machine from python process , you need to install oracle client module in order to use this library. Check [cx-Oracle's installation guide](https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html) for further information.
 - No automaticly date format transition built-in.
+- AQ feature newly added , [docs here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/docs/temporary_document_of_AQ.md).
 
 ## Performance
 query type | asynchronous multithreading | synchronous multithreading | synchronous single thread
 -|-|-|-
-fast single line query | 4864.96 q/s | 5859.20 q/s | 8209.536 q/s
+fast single line query | 6259.80 q/s | 28906.93 q/s | 14805.61 q/s
 single line insertion | N/A (todo) | N/A | N/A
 
 */\* Test platform: \*/*<br>
@@ -36,8 +37,8 @@ single line insertion | N/A (todo) | N/A | N/A
 
 ## Examples
 Before running examples , make sure you've already installed a [oracle client](https://github.com/GoodManWEN/cx_Oracle_async#usage) on your machine.
-```Python3
-# all_usages.py
+```Python
+# basic_usages.py
 import asyncio
 import cx_Oracle_async
 
@@ -80,7 +81,7 @@ if __name__ == '__main__':
 ```
 
 Or you can connect to database via makedsn style:
-```Python3
+```Python
 # makedsn.py
 import asyncio
 import cx_Oracle_async
@@ -88,15 +89,8 @@ import cx_Oracle_async
 async def main():
     # same api as cx_Oracle.makedsn with 4 limited parameters(host , port , sid , service_name).
     dsn = cx_Oracle_async.makedsn(host = 'localhost' , port = '1521' , service_name = 'orcl')
-    oracle_pool = await cx_Oracle_async.create_pool(
-        user='user', 
-        password='password',
-        dsn = dsn
-    )
-
-    ...
-
-    await oracle_pool.close()
+    async with await cx_Oracle_async.create_pool(user='', password='',dsn = dsn) as pool:
+        ...
 
 asyncio.run(main())
 ```

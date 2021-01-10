@@ -4,8 +4,8 @@ class AbstractContextManager:
         self._coro = coro
         self._obj = None
 
-    def __next__(self):
-        return self.send(None)
+    # def __next__(self):
+    #     return self.send(None)
 
     def __iter__(self):
         return self._coro.__await__()

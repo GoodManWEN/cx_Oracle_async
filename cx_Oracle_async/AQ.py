@@ -20,7 +20,7 @@ class AsyncQueueWrapper:
         async with self._deqlock:
             return await self._loop.run_in_executor(self._thread_pool , self._queue.deqOne , *args , **kwargs)
 
-    def deqMany(self , maxMessages):
+    def deqMany(self , maxMessages = -1):
         return DeqManyWrapper(self._loop , self._thread_pool , self._queue , self._deqlock , maxMessages)
 
     @property
@@ -39,8 +39,11 @@ class DeqManyWrapper:
         self._thread_pool = thread_pool
         self._queue = queue
         self._count = 0
-        self._max = maxMessages
+        self._max = maxMessages if maxMessages != -1 else (1 << 16 - 1) 
         self._deqlock = deqlock
+
+    def __await__(self):
+        return self._loop.run_in_executor(self._thread_pool , self._queue.deqMany , self._max).__await__()
 
     def __aiter__(self):
         return self

@@ -1,17 +1,23 @@
+from .pools import AsyncPoolWrapper , AsyncPoolWrapper_context
 from ThreadPoolExecutorPlus import ThreadPoolExecutor
 import cx_Oracle as cxor
 import asyncio
-from .pools import AsyncPoolWrapper , AsyncPoolWrapper_context
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from asyncio.windows_events import ProactorEventLoop
+
 
 makedsn = cxor.makedsn
+DEQ_NO_WAIT = cxor.DEQ_NO_WAIT
+DEQ_WAIT_FOREVER = cxor.DEQ_WAIT_FOREVER
 
 async def _create_pool(
-        host=None,
-        port=None,
-        service_name=None,
-        sid=None,
-        loop=None,
-        dsn=None,
+        host: str =None,
+        port: str =None,
+        service_name: str =None,
+        sid: str =None,
+        loop: 'ProactorEventLoop' =None,
+        dsn: str =None,
         **kwargs
     ):
     if loop == None:
@@ -27,11 +33,11 @@ async def _create_pool(
     return pool
 
 def create_pool(
-        user=None, 
-        password=None, 
-        dsn=None, 
-        min=2, 
-        max=4, 
+        user: str =None, 
+        password: str =None, 
+        dsn: str =None, 
+        min: int =2, 
+        max: int =4, 
         increment=1, 
         connectiontype=cxor.Connection, 
         threaded=True, 
@@ -46,11 +52,11 @@ def create_pool(
         maxLifetimeSession=0, 
         sessionCallback=None, 
         maxSessionsPerShard=0,
-        host=None,
-        port=None,
-        service_name=None,
-        sid=None,
-        loop=None,
+        host: str =None,
+        port: str =None,
+        service_name: str =None,
+        sid: str =None,
+        loop: 'ProactorEventLoop' =None,
     ):
     coro = _create_pool(
         user=user, 

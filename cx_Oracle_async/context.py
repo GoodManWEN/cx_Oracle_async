@@ -1,6 +1,8 @@
+from types import CoroutineType
+
 class AbstractContextManager:
 
-    def __init__(self , coro):
+    def __init__(self , coro : CoroutineType):
         self._coro = coro
         self._obj = None
 

@@ -2,7 +2,7 @@
 
 We made a very simple implement of [Advanced Queue](https://cx-oracle.readthedocs.io/en/latest/user_guide/aq.html#oracle-advanced-queuing-aq) as it's Oracledb's exclusive feature. Here's a rough draft with basic examples shows you how to use it .
 
-## Example
+## Examples
 
 Before running python codes below , you need to create queues in the database via console mode ,use tools such as SQL\*Plus , run the following SQL:
 
@@ -87,6 +87,35 @@ async def features(oracle_pool):
         await queue.deqOne() # clean
         await conn.commit()
 
+        # Syntactic sugar
+        # There re some equivalent replacements Perticularly in this async library for convenient use.
+        queue = await conn.queue("DEMO_RAW_QUEUE")
+        async for _ in queue.deqMany():... # Clear queue
+        message = "Hello World"
+        
+        # Queue.pack(m) is equal to Connection.msgproperties(payload=m) 
+        await queue.enqOne(queue.pack(message)) 
+        await queue.enqOne(conn.msgproperties(payload=message)) 
+        await conn.commit()
+
+        # Queue.unpack(m) is equal to m.payload.decode(conn.encoding)
+        ret1 = queue.unpack(await queue.deqOne())
+        ret2 = (await queue.deqOne()).payload.decode(conn.encoding)
+        await conn.commit()
+        assert ret1 == ret2 == message
+
+        # Queue.unpack(m) will do automatically treatment depends on whether input a single object or a iterable.
+        await queue.enqMany(queue.pack(m) for m in map(str , range(10)))
+        await conn.commit()
+        ret1 = queue.unpack(await queue.deqMany())  # This returns a list but not a single object.
+        await conn.commit()
+
+        ret2 = []
+        await queue.enqMany(queue.pack(m) for m in map(str , range(10)))
+        await conn.commit()
+        async for m in queue.deqMany():
+            ret2.append(queue.unpack(m))  # This returns a single object since one input eachtime.
+        assert ret1 == ret2
 
 async def main():
     dsn = cx_Oracle_async.makedsn(
@@ -119,7 +148,7 @@ async def main():
         port = '1521',
         service_name='orcl'
     )
-    async with cx_Oracle_async.create_pool(user = 'C##SCOTT' , password = '123456' , dsn = dsn) as oracle_pool:
+    async with cx_Oracle_async.create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
         async with oracle_pool.acquire() as conn:
             queue = await conn.queue("DEMO_RAW_QUEUE")
             loop.create_task(coro_to_get_from_queue(conn , queue , oracle_pool))
@@ -172,7 +201,7 @@ async def main():
         port = '1521',
         service_name='orcl'
     )
-    async with cx_Oracle_async.create_pool(user = 'C##SCOTT' , password = '123456' , dsn = dsn) as oracle_pool:
+    async with cx_Oracle_async.create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
         async with oracle_pool.acquire() as conn:
             queue = await conn.queue("DEMO_RAW_QUEUE")
             loop.create_task(coro_to_get_from_queue(conn , queue , oracle_pool))
@@ -186,6 +215,98 @@ async def main():
 
     await asyncio.sleep(1)
     print('Process terminated.')
+
+asyncio.run(main())
+```
+
+## Special Explanation for queue.deqMany()
+
+Queue.deqMany has a little bit complexity in usage , here're some further instructions.
+```Python
+import cx_Oracle_async
+import asyncio
+import random
+
+async def main():
+    loop = asyncio.get_running_loop()
+    dsn = cx_Oracle_async.makedsn(
+        host = 'localhost',
+        port = '1521',
+        service_name='orcl'
+    )
+    async with cx_Oracle_async.create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
+        async with oracle_pool.acquire() as conn:
+
+            # Init and clear a queue
+            queue = await conn.queue("DEMO_RAW_QUEUE")
+            async for _ in queue.deqMany():...
+
+            # There're two ways of calling deqMany , you can use it as a normal asynchronous call , 
+            # OR you can use it as a asynchronous generator.
+            # For example.
+
+            await queue.enqMany(queue.pack(m) for m in map(str , range(10)))
+            await conn.commit()
+
+            # The First way , use it as a normal asynchronous call , 
+            # This method use the original cx_Oracle.Queue.deqMany , so its
+            # your choice if you're looking for efficiency concern. The
+            # sub thread will block until all results returned.
+            
+            ret = await queue.deqMany(maxMessages = 10)
+            await conn.commit()
+            assert list(map(queue.unpack , ret)) == list(map(str , range(10)))
+
+            # The second way , you can call deqMany as a asynchronous generator.
+            # This is a self implemented method which yield a single queue.deqOne 
+            # each time. The benifits is you will get immediate response. 
+
+            await queue.enqMany(queue.pack(m) for m in map(str , range(10)))
+            await conn.commit()
+
+            ret = []
+            async for m in queue.deqMany(maxMessages = 10):
+                ret.append(queue.unpack(m))
+            await conn.commit()
+            assert ret == list(map(str , range(10)))
+            
+            # It is worth mentioning that , the two means act differently
+            # when there's a empty queue.
+
+            # If you are using the `await` mode , for example `ret == await queue.deqMany()`
+            # if there's do have something in the queue , this method will quickly return , 
+            # while if there's nothing in the queue , the method will block until there's 
+            # something new come into the queue , this sometime will make it a deadlock 
+            # in main threadloop under improper use. So do please make sure you're clear about
+            # what you're doing.
+
+            # Of course you can change deqOptions into non-blocking mode like
+            # `queue.deqOptions.wait = cx_Oracle_async.DEQ_NO_WAIT` to aviod it.
+
+            # On the other hand ,  If you are using the `async with` mode , it will never 
+            # block your main thread , however it's low efficiency , and it will not be affected by 
+            # `Queue.deqOptions` , no matter what setting `Queue.deqOptions` is , it will return 
+            # immediately when there's nothing in the queue.
+ 
+            # So taking into consideration that when argument maxMessages equals to -1 (default value),
+            # it means unlimit fetch untill the queue is empty (whose "unlimit" do has a soft upper bound
+            # of maximum queue length of 65535). It's convenient to clear the whole queue with 
+            # the following code:
+
+            messages = list(map(str , range(random.randint(0,10))))
+            await queue.enqMany(queue.pack(m) for m in messages)
+            await conn.commit()
+
+            # You are not clear about how large the queue size is (there's also chance it's empty)
+            # and want to take out all stuffs in it if its not empty.
+            ret = []
+            async for m in queue.deqMany():
+                ret.append(queue.unpack(m))
+            print(ret)
+
+            # Do something keep on.
+            ...
+
 
 asyncio.run(main())
 ```

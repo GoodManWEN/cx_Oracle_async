@@ -56,3 +56,26 @@ async def test_new_table():
             assert ret[1][1] == 'CHICAGO'
 
     await oracle_pool.close()
+
+@pytest.mark.asyncio
+async def test_usage():
+    dsn = makedsn(
+        host = 'localhost', 
+        port = '1521', 
+        sid = 'xe'
+    )
+    oracle_pool1 = await create_pool(
+        user = 'system',
+        password = 'oracle',
+        dsn = dsn
+    )
+    async with create_pool(user = 'system',password = 'oracle',dsn = dsn) as oracle_pool2:
+        assert type(oracle_pool1) is type(oracle_pool2)
+
+    conn1 = await oracle_pool1.acquire()
+    async with oracle_pool1.acquire() as conn2:
+        assert type(conn1) is type(conn2)
+
+    cursor1 = await conn1.cursor()
+    async with conn1.cursor() as cursor2:
+        assert type(cursor1) is type(cursor2) 

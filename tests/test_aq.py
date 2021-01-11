@@ -4,11 +4,43 @@ import pytest
 import asyncio
 import time
 from cx_Oracle_async import *
+import cx_Oracle
+
+async def modify_deqopts(queue , val):
+    queue.deqOptions.wait = val
+
+async def fetch_from_queue_no_wait(oracle_pool , loop):
+    async with oracle_pool.acquire() as conn:
+        queue = await conn.queue("DEMO_RAW_QUEUE")
+        loop.create_task(modify_deqopts(queue , DEQ_NO_WAIT))
+        ret = await queue.deqOne()
+        if ret:
+            ret = ret.payload.decode(conn.encoding)
+        await conn.commit()
+        return ret
+
+async def fetch_from_queue_wait_forever(oracle_pool , loop):
+    async with oracle_pool.acquire() as conn:
+        queue = await conn.queue("DEMO_RAW_QUEUE")
+        loop.create_task(modify_deqopts(queue , DEQ_WAIT_FOREVER))
+        ret = await queue.deqOne()
+        if ret:
+            ret = ret.payload.decode(conn.encoding)
+        return ret
+
+async def put_into_queue(oracle_pool , loop , queue_name):
+    await asyncio.sleep(2)
+    async with oracle_pool.acquire() as conn:
+        queue = await conn.queue(queue_name)
+        await queue.enqOne(conn.msgproperties(payload='Hello World'))
+        await conn.commit()
 
 @pytest.mark.asyncio
 async def test_multiquery():
+    loop = asyncio.get_running_loop()
     dsn  = makedsn('localhost','1521',sid='xe')
-    async with create_pool(user='system',password='oracle',dsn=dsn) as oracle_pool:
+    INAQ = 0.5
+    async with create_pool(user='system',password='oracle',dsn=dsn,max=4) as oracle_pool:
         async with oracle_pool.acquire() as conn:
             async with conn.cursor() as cursor:
                 try:
@@ -124,3 +156,86 @@ async def test_multiquery():
                     res.append(m.payload.decode(conn.encoding))
                 ed_time = time.time()
                 assert (ed_time - st_time) <= 0.5
+
+        # test aq options
+        st_time = time.time()
+        _task = loop.create_task(fetch_from_queue_no_wait(oracle_pool , loop))
+        result = await _task
+        ed_time = time.time()
+        assert result == None
+        assert (ed_time - st_time) <= INAQ
+
+        #
+        st_time = time.time()
+        _task = loop.create_task(fetch_from_queue_wait_forever(oracle_pool , loop))
+        loop.create_task(put_into_queue(oracle_pool , loop , "DEMO_RAW_QUEUE"))
+        result = await _task
+        ed_time = time.time()
+        assert result == "Hello World"
+        assert (2 - INAQ) <= (ed_time - st_time) <= (2 + INAQ)
+
+@pytest.mark.asyncio
+async def test_block_behavior():
+    loop = asyncio.get_running_loop()
+    dsn  = makedsn('localhost','1521',sid='xe')
+    INAQ = 0.5
+    async with create_pool(user='system',password='oracle',dsn=dsn,max=4) as oracle_pool:
+        async with oracle_pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                try:
+                    await cursor.execute("""
+                        BEGIN
+                          DBMS_AQADM.STOP_QUEUE(queue_name => 'DEMO_RAW_QUEUE3');
+                          DBMS_AQADM.DROP_QUEUE(queue_name => 'DEMO_RAW_QUEUE3');
+                          DBMS_AQADM.DROP_QUEUE_TABLE(queue_table => 'MY_QUEUE_TABLE3');
+                        END;
+
+                    """)
+                except Exception as e:
+                    ...
+
+                await cursor.execute("""
+                        BEGIN
+                            DBMS_AQADM.CREATE_QUEUE_TABLE('MY_QUEUE_TABLE3', 'RAW');
+                            DBMS_AQADM.CREATE_QUEUE('DEMO_RAW_QUEUE3', 'MY_QUEUE_TABLE3');
+                            DBMS_AQADM.START_QUEUE('DEMO_RAW_QUEUE3');
+                        END;
+                    """)
+
+            queue = await conn.queue("DEMO_RAW_QUEUE3")
+            queue.deqOptions.wait = DEQ_WAIT_FOREVER
+            messages = list(map(str,range(6)))
+            await queue.enqMany(queue.pack(m) for m in messages)
+            await conn.commit()
+
+            ret = []
+            async for m in queue.deqMany():
+                ret.append(queue.unpack(m))
+            await conn.commit()
+            assert ret == messages
+
+            # Return immediate with empty queue
+            st_time = time.time()
+            async for m in queue.deqMany():
+                ...
+            ed_time = time.time()
+            assert (ed_time - st_time) <= INAQ
+
+            messages = list(map(str,range(6)))
+            await queue.enqMany(queue.pack(m) for m in messages)
+            await conn.commit()
+
+            ret = await queue.deqMany(5)
+            assert list(map(queue.unpack , ret)) == list(map(str,range(5)))
+            # return all
+            ret = await queue.deqMany(65536)
+            assert list(map(queue.unpack , ret)) == ['5',]
+            await conn.commit()
+
+            # test block
+            loop.create_task(put_into_queue(oracle_pool , loop , "DEMO_RAW_QUEUE3"))
+            st_time = time.time()
+            ret = await queue.deqMany(-1)
+            ed_time = time.time()
+            assert queue.unpack(ret) == ["Hello World",]
+            assert (2 - INAQ) <= (ed_time - st_time) <= (2 + INAQ)

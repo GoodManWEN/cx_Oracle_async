@@ -1,15 +1,21 @@
 from .context import AbstractContextManager as BaseManager
+from ThreadPoolExecutorPlus import ThreadPoolExecutor
+from types import CoroutineType
+from cx_Oracle import Cursor
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from asyncio.windows_events import ProactorEventLoop
 
 
 class AsyncCursorWrapper_context(BaseManager):
 
-    def __init__(self , coro):
+    def __init__(self , coro : CoroutineType):
         super().__init__(coro)
 
 
 class AsyncCursorWrapper:
 
-    def __init__(self , cursor , loop , thread_pool):
+    def __init__(self , cursor : Cursor, loop : 'ProactorEventLoop' , thread_pool : ThreadPoolExecutor):
         self._cursor = cursor
         self._loop = loop
         self._thread_pool = thread_pool

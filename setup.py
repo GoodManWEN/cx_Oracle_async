@@ -30,6 +30,8 @@ html = BeautifulSoup(rget(url , headers).text ,'lxml')
 description = html.find('meta' ,{'name':'description'}).get('content')
 html = BeautifulSoup(rget(release , headers).text ,'lxml')
 version = html.find('div',{'class':'release-header'}).find('a').text
+if ':' in version:
+    version = version[:version.index(':')].strip()
 logger.info(f"description: {description}")
 logger.info(f"version: {version}")
 

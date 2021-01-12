@@ -239,3 +239,21 @@ async def test_block_behavior():
             ed_time = time.time()
             assert queue.unpack(ret) == ["Hello World",]
             assert (2 - INAQ) <= (ed_time - st_time) <= (2 + INAQ)
+
+            await queue.enqOne(queue.pack('Hello World'))
+            await conn.commit()
+            obj = queue.deqMany(65535)  
+            ret = await obj 
+            try:
+                ret = await obj 
+                raise TypeError()
+            except Exception as exc:
+                assert isinstance(exc , RuntimeError)
+
+            obj = queue.deqMany(65535) 
+            async for _ in obj:...
+            try:
+                async for _ in obj:...
+                raise TypeError()
+            except Exception as exc:
+                assert isinstance(exc , RuntimeError)

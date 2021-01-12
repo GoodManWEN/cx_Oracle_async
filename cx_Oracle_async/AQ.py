@@ -3,6 +3,7 @@ from ThreadPoolExecutorPlus import ThreadPoolExecutor
 from asyncio import Lock as aioLock
 from collections.abc import Iterable
 from typing import Union , TYPE_CHECKING
+from collections import deque
 if TYPE_CHECKING:
     from .connections import AsyncConnectionWrapper
     from cx_Oracle import Queue
@@ -60,34 +61,68 @@ class DeqManyWrapper:
         self._thread_pool = thread_pool
         self._queue = queue
         self._count = 0
-        self._max = maxMessages if maxMessages > -1 else (1 << 16 - 1) 
-        self._max = self._max if self._max <= (1 << 16 - 1) else (1 << 16 - 1) 
+        self._max_messages = maxMessages
         self._deqlock = deqlock
+        self._buffer = deque()
+        self._soft_max = ((1 << 16) - 1)
+        self._max_limit = maxMessages if maxMessages > -1 else self._soft_max
+        self._max_limit = self._max_limit if self._max_limit <= self._soft_max else self._soft_max 
+        self._deqcount = 0
+        self._closed = False
+
+    @property 
+    def _fetch_num(self):
+        return self._soft_max if self._max_messages < 0 else min(self._max_limit , self._max_messages - self._deqcount)
 
     def __await__(self):
+        if self._closed:
+            raise RuntimeError('Current query has closed , you cannot activate it twice.')
         yield from self._deqlock.acquire().__await__()
         try:
-            ret = yield from self._loop.run_in_executor(self._thread_pool , self._queue.deqMany , self._max).__await__()
+            ret = yield from self._loop.run_in_executor(self._thread_pool , self._queue.deqMany , self._fetch_num).__await__()
         except Exception as exc:
             raise exc
         finally:
             self._deqlock.release()
+        self._closed = True
         return ret
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
-        self._count += 1
-        if self._count <= self._max:
-            _tmp = self._queue.deqOptions.wait
-            async with self._deqlock:
+        if self._closed:
+            raise RuntimeError('Current query has closed , you cannot activate it twice.')
+
+        if self._max_messages == 0:
+            self._closed = True
+            raise StopAsyncIteration
+
+        # Fetch off
+        if self._max_messages > 0 and self._deqcount >= self._max_messages:
+            if self._buffer:
+                return self._buffer.popleft()
+            self._closed = True
+            raise StopAsyncIteration
+
+        # Fetch on
+        if self._buffer:
+            return self._buffer.popleft()
+        _tmp = self._queue.deqOptions.wait
+        async with self._deqlock:
+            try:
                 self._queue.deqOptions.wait = DEQ_NO_WAIT
-                data = await self._loop.run_in_executor(self._thread_pool , self._queue.deqOne)
+                data = await self._loop.run_in_executor(self._thread_pool , self._queue.deqMany , self._fetch_num)
+            except Exception as exc:
+                raise exc
+            finally:
                 self._queue.deqOptions.wait = _tmp
+
             if data:
-                return data
-            else:
-                raise StopAsyncIteration
-        else:
+                self._buffer.extend(data)
+                self._deqcount += len(data)
+                return self._buffer.popleft()
+
+            # No data return , close iteration.
+            self._closed = True
             raise StopAsyncIteration

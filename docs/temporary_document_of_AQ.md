@@ -258,8 +258,10 @@ async def main():
             assert list(map(queue.unpack , ret)) == list(map(str , range(10)))
 
             # The second way , you can call deqMany as a asynchronous generator.
-            # This is a self implemented method which yield a single queue.deqOne 
-            # each time. The benifits is you will get immediate response. 
+            # This is a self implemented method which yield queue.deqMany() with
+            # queue.deqOptions = DEQ_NO_WAIT until it reaches the message limit or
+            # there's nothing in the queue. The benifits is you will get immediate 
+            # response. 
 
             await queue.enqMany(queue.pack(m) for m in map(str , range(10)))
             await conn.commit()
@@ -283,17 +285,16 @@ async def main():
             # Of course you can change deqOptions into non-blocking mode like
             # `queue.deqOptions.wait = cx_Oracle_async.DEQ_NO_WAIT` to aviod it.
 
-            # On the other hand ,  If you are using the `async with` mode , it will never 
-            # block your main thread , however it's low efficiency , and it will not be affected by 
-            # `Queue.deqOptions` , no matter what setting `Queue.deqOptions` is , it will return 
-            # immediately when there's nothing in the queue.
+            # On the other hand ,  If you are using the `async with` mode , it will  
+            # never block your main thread , however it will not be affected by 
+            # `Queue.deqOptions` , no matter what setting `Queue.deqOptions` is , 
+            # it will return immediately when there's nothing in the queue.
  
-            # So taking into consideration that when argument maxMessages equals to -1 (default value),
-            # it means unlimit fetch untill the queue is empty (whose "unlimit" do has a soft upper bound
-            # of maximum queue length of 65535). It's convenient to clear the whole queue with 
-            # the following code:
+            # So taking into consideration that when argument maxMessages equals to 
+            # -1 (default value), it means unlimit fetch untill the queue is empty. 
+            # It's convenient to clear the whole queue with the following code:
 
-            messages = list(map(str , range(random.randint(0,10))))
+            messages = list(map(str , range(random.randint(0,10000))))
             await queue.enqMany(queue.pack(m) for m in messages)
             await conn.commit()
 

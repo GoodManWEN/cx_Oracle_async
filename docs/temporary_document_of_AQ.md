@@ -276,9 +276,9 @@ async def main():
             # when there's a empty queue.
 
             # If you are using the `await` mode , for example `ret == await queue.deqMany()`
-            # if there's do have something in the queue , this method will quickly return , 
+            # if there do have something in the queue , this method will quickly return , 
             # while if there's nothing in the queue , the method will block until there's 
-            # something new come into the queue , this sometime will make it a deadlock 
+            # something new come into the queue , this will sometime make it a deadlock 
             # in main threadloop under improper use. So do please make sure you're clear about
             # what you're doing.
 
@@ -291,8 +291,10 @@ async def main():
             # it will return immediately when there's nothing in the queue.
  
             # So taking into consideration that when argument maxMessages equals to 
-            # -1 (default value), it means unlimit fetch untill the queue is empty. 
-            # It's convenient to clear the whole queue with the following code:
+            # -1 (default value), it means unlimit fetch untill the queue is empty 
+            # (where if youre using `await` mode , the "unlimit" do have a soft upper bound 
+            # of 65535 , and no limit with `async for` mode cause its assembled from multiple 
+            # querys). It's convenient to clear the whole queue with the following code:
 
             messages = list(map(str , range(random.randint(0,10000))))
             await queue.enqMany(queue.pack(m) for m in messages)

@@ -6,6 +6,7 @@ from ThreadPoolExecutorPlus import ThreadPoolExecutor
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from asyncio.windows_events import ProactorEventLoop
+    from .pools import AsyncPoolWrapper
 
 class AsyncConnectionWrapper_context(BaseManager):
 
@@ -19,11 +20,13 @@ class AsyncConnectionWrapper_context(BaseManager):
 
 class AsyncConnectionWrapper:
 
-    def __init__(self , conn: Connection, loop: 'ProactorEventLoop', thread_pool: ThreadPoolExecutor, pool: SessionPool):
+    def __init__(self , conn: Connection, loop: 'ProactorEventLoop', thread_pool: ThreadPoolExecutor, pool: SessionPool, pool_wrapper:'AsyncPoolWrapper'):
         self._conn = conn  
         self._loop = loop
         self._pool = pool
+        self._pool_wrapper = pool_wrapper
         self._thread_pool = thread_pool
+
 
     def cursor(self):
         coro = self._loop.run_in_executor(self._thread_pool , self._cursor)
@@ -52,4 +55,9 @@ class AsyncConnectionWrapper:
         await self._loop.run_in_executor(self._thread_pool , self._conn.commit)
 
     async def release(self):
-        return await self._loop.run_in_executor(self._thread_pool , self._pool.release , self._conn)
+        r = await self._loop.run_in_executor(self._thread_pool , self._pool.release , self._conn)
+        self._pool_wrapper._unoccupied(self._conn)
+        return r
+
+    async def cancel(self):
+        await self._loop.run_in_executor(self._thread_pool , self._conn.cancel)

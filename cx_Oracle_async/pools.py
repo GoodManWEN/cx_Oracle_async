@@ -38,13 +38,23 @@ class AsyncPoolWrapper:
         self._thread_pool.set_daemon_opts(min_workers = max(4 , pool.min << 1))
         self._loop = loop 
         self._pool = pool 
+        self._occupied = set()
 
     def acquire(self):
         coro = self._loop.run_in_executor(self._thread_pool , self._acquire)
         return AsyncConnectionWrapper_context(coro)
 
     def _acquire(self):
-        return AsyncConnectionWrapper(self._pool.acquire() , self._loop , self._thread_pool , self._pool)
+        _conn = self._pool.acquire()
+        self._occupied.update((_conn , ))
+        return AsyncConnectionWrapper(_conn , self._loop , self._thread_pool , self._pool , self)
 
-    async def close(self):
-        return await self._loop.run_in_executor(self._thread_pool , self._pool.close)
+    def _unoccupied(self , obj):
+        self._occupied.remove(obj)
+
+    async def close(self , force = False):
+        while self._occupied:
+            _conn = self._occupied.pop()
+            await self._loop.run_in_executor(self._thread_pool , _conn.cancel)
+
+        return await self._loop.run_in_executor(self._thread_pool , self._pool.close , force)

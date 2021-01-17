@@ -53,8 +53,9 @@ class AsyncPoolWrapper:
         self._occupied.remove(obj)
 
     async def close(self , force = False):
-        while self._occupied:
-            _conn = self._occupied.pop()
-            await self._loop.run_in_executor(self._thread_pool , _conn.cancel)
+        if force:
+            while self._occupied:
+                _conn = self._occupied.pop()
+                await self._loop.run_in_executor(self._thread_pool , _conn.cancel)
 
         return await self._loop.run_in_executor(self._thread_pool , self._pool.close , force)

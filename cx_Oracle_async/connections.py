@@ -55,9 +55,8 @@ class AsyncConnectionWrapper:
         await self._loop.run_in_executor(self._thread_pool , self._conn.commit)
 
     async def release(self):
-        r = await self._loop.run_in_executor(self._thread_pool , self._pool.release , self._conn)
         self._pool_wrapper._unoccupied(self._conn)
-        return r
+        return await self._loop.run_in_executor(self._thread_pool , self._pool.release , self._conn)
 
     async def cancel(self):
         await self._loop.run_in_executor(self._thread_pool , self._conn.cancel)

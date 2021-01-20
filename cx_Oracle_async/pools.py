@@ -1,7 +1,7 @@
 from .context import AbstractContextManager as BaseManager
 from .connections import AsyncConnectionWrapper , AsyncConnectionWrapper_context
 from ThreadPoolExecutorPlus import ThreadPoolExecutor
-from cx_Oracle import SessionPool
+from cx_Oracle import Connection , SessionPool
 from types import CoroutineType
 import asyncio
 import platform
@@ -51,6 +51,12 @@ class AsyncPoolWrapper:
 
     def _unoccupied(self , obj):
         self._occupied.remove(obj)
+
+    async def release(self , conn: Connection):
+        return await self._loop.run_in_executor(self._thread_pool , self._pool.release , conn)
+
+    async def drop(self , conn: Connection):
+        return await self._loop.run_in_executor(self._thread_pool , self._pool.drop , conn)
 
     async def close(self , force = False):
         if force:

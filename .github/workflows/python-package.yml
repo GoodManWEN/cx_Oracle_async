@@ -47,7 +47,7 @@ jobs:
         run: |  # sleep to make sure Oracle server is fully loaded
           sleep 60            
           python -m pip install --upgrade pip
-          python -m pip install flake8 pytest pytest-asyncio
+          python -m pip install flake8 pytest pytest-asyncio async_timeout
           pip install -r requirements.txt
       - name: Lint with flake8
         run: |

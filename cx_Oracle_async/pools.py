@@ -49,7 +49,7 @@ class AsyncPoolWrapper:
         self._occupied.update((_conn , ))
         return AsyncConnectionWrapper(_conn , self._loop , self._thread_pool , self._pool , self)
 
-    def _unoccupied(self , obj):
+    def _unoccupied(self , obj: Connection):
         self._occupied.remove(obj)
 
     async def release(self , conn: Connection):
@@ -58,10 +58,17 @@ class AsyncPoolWrapper:
     async def drop(self , conn: Connection):
         return await self._loop.run_in_executor(self._thread_pool , self._pool.drop , conn)
 
-    async def close(self , force = False):
-        if force:
-            while self._occupied:
-                _conn = self._occupied.pop()
+    async def close(self , force: bool = False , interrupt: bool = False):
+        '''
+        WARNING: option `interrupt` will force cancel all running connections before close
+        the pool. This may cause fetching thread no response forever in some legacy version
+        of oracle database such as 11 or lower.
+
+        Do make sure this option works fine with your working enviornment.
+        '''
+        while self._occupied:
+            _conn = self._occupied.pop()
+            if interrupt:
                 await self._loop.run_in_executor(self._thread_pool , _conn.cancel)
 
         return await self._loop.run_in_executor(self._thread_pool , self._pool.close , force)

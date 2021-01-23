@@ -52,11 +52,17 @@ class AsyncConnectionWrapper:
         return await self._loop.run_in_executor(self._thread_pool , self._conn.gettype , *args , **kwargs)
 
     async def commit(self):
-        await self._loop.run_in_executor(self._thread_pool , self._conn.commit)
+        return await self._loop.run_in_executor(self._thread_pool , self._conn.commit)
 
     async def release(self):
         self._pool_wrapper._unoccupied(self._conn)
         return await self._loop.run_in_executor(self._thread_pool , self._pool.release , self._conn)
 
     async def cancel(self):
-        await self._loop.run_in_executor(self._thread_pool , self._conn.cancel)
+        return await self._loop.run_in_executor(self._thread_pool , self._conn.cancel)
+
+    async def ping(self):
+        return await self._loop.run_in_executor(self._thread_pool , self._conn.ping)
+
+    async def rollback(self):
+        return await self._loop.run_in_executor(self._thread_pool , self._conn.rollback)

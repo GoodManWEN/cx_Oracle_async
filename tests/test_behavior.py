@@ -24,7 +24,7 @@ async def test_new_table():
             ret = await cursor.fetchone()
             assert ret 
             if ret[0] > 0:
-                await cursor.execute("DTOP TABLE DEPT")
+                await cursor.execute("DROP TABLE DEPT")
 
             sql = f"""
                 CREATE TABLE DEPT
@@ -78,4 +78,4 @@ async def test_usage():
 
     cursor1 = await conn1.cursor()
     async with conn1.cursor() as cursor2:
-        assert type(cursor1) is type(cursor2) 
+        assert type(cursor1) is type(cursor2)

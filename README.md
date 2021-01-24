@@ -91,7 +91,7 @@ import cx_Oracle_async
 async def main():
     # same api as cx_Oracle.makedsn with 4 limited parameters(host , port , sid , service_name).
     dsn = cx_Oracle_async.makedsn(host = 'localhost' , port = '1521' , service_name = 'orcl')
-    async with await cx_Oracle_async.create_pool(user='', password='',dsn = dsn) as pool:
+    async with cx_Oracle_async.create_pool(user='', password='',dsn = dsn) as pool:
         ...
 
 asyncio.run(main())

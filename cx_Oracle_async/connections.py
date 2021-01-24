@@ -42,6 +42,42 @@ class AsyncConnectionWrapper:
     def encoding(self):
         return self._conn.encoding
 
+    @property
+    def dsn(self):
+        return self._conn.dsn
+
+    @property 
+    def module(self):
+        return self._conn.module
+
+    @module.setter
+    def module(self , arg):
+        self._conn.module = arg
+
+    @property 
+    def action(self):
+        return self._conn.action
+
+    @action.setter
+    def action(self , arg):
+        self._conn.action = arg
+
+    @property 
+    def client_identifier(self):
+        return self._conn.client_identifier
+
+    @client_identifier.setter
+    def client_identifier(self , arg):
+        self._conn.client_identifier = arg
+
+    @property 
+    def clientinfo(self):
+        return self._conn.clientinfo
+
+    @clientinfo.setter
+    def clientinfo(self , arg):
+        self._conn.clientinfo = arg
+
     async def queue(self , *args , **kwargs):
         return AsyncQueueWrapper(self._conn.queue(*args , **kwargs) , self._loop , self._thread_pool , self)
 

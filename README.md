@@ -18,10 +18,12 @@ Easy to use , buy may not the best practice for efficiency concern.
     pip install cx_Oracle_async
     
 ## Usage
-- Nearly all the same with aiomysql (with very limited functions) , you can do execute , executemany , commit statement etc.
-- If you're connecting to database which is on a different machine from python process , you need to install oracle client module in order to use this library. Check [cx-Oracle's installation guide](https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html) for further information.
+- Nearly all the same as aiomysql in asynchronous operational approach , with limited cx_Oracle feature support.
 - No automaticly date format transition built-in.
-- AQ feature newly added , check [docs here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/docs/temporary_document_of_AQ.md).
+- AQ feature added , check [docs here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/docs/temporary_document_of_AQ.md) for further information.
+- You can modify some of the connection properties simply like you're using cx_Oracle. 
+- You can do basic insert / select / delete etc.
+- If you're connecting to database which is on a different machine from python process , you need to install oracle client module in order to use this library. Check [cx-Oracle's installation guide](https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html) for further information.
 
 ## Performance
 query type | asynchronous multithreading | synchronous multithreading | synchronous single thread

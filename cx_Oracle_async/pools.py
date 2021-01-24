@@ -25,7 +25,7 @@ class AsyncPoolWrapper_context(BaseManager):
         super().__init__(coro)
 
     async def __aexit__(self, exc_type, exc, tb):
-        await self._obj.close()
+        await self._obj.close(force = True)
         self._obj = None
 
 

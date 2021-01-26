@@ -42,10 +42,10 @@ async def test_force_close():
 
     # test occupy
     oracle_pool = await create_pool(user='system',password='oracle',dsn=dsn,max=4)
-    conn = await oracle_pool.acquire()
-    conn = await oracle_pool.acquire()
+    conn1 = await oracle_pool.acquire()
+    conn2 = await oracle_pool.acquire()
     assert len(oracle_pool._occupied) == 2
-    conn = await oracle_pool.acquire()
+    conn3 = await oracle_pool.acquire()
     assert len(oracle_pool._occupied) == 3
     st_time = time.time()
     await asyncio.sleep(2)

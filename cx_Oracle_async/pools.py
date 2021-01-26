@@ -2,6 +2,7 @@ from .context import AbstractContextManager as BaseManager
 from .connections import AsyncConnectionWrapper , AsyncConnectionWrapper_context
 from ThreadPoolExecutorPlus import ThreadPoolExecutor
 from cx_Oracle import Connection , SessionPool
+from weakref import WeakSet
 from types import CoroutineType
 import asyncio
 import platform
@@ -38,22 +39,24 @@ class AsyncPoolWrapper:
         self._thread_pool.set_daemon_opts(min_workers = max(4 , pool.min << 1))
         self._loop = loop 
         self._pool = pool 
-        self._occupied = set()
+        self._occupied = WeakSet()
 
     def acquire(self):
         coro = self._loop.run_in_executor(self._thread_pool , self._acquire)
         return AsyncConnectionWrapper_context(coro)
 
     def _acquire(self):
-        _conn = self._pool.acquire()
-        self._occupied.update((_conn , ))
-        return AsyncConnectionWrapper(_conn , self._loop , self._thread_pool , self._pool , self)
+        wrapper = AsyncConnectionWrapper(self._pool.acquire() , self._loop , self._thread_pool , self._pool , self)
+        self._occupied.add(wrapper)
+        return wrapper
 
-    def _unoccupied(self , obj: Connection):
-        self._occupied.remove(obj)
+    def _ofree(self , obj: AsyncConnectionWrapper):
+        if obj in self._occupied:
+            self._occupied.remove(obj)
 
-    async def release(self , conn: Connection):
-        return await self._loop.run_in_executor(self._thread_pool , self._pool.release , conn)
+    async def release(self , conn: AsyncConnectionWrapper):
+        self._ofree(conn)
+        return await self._loop.run_in_executor(self._thread_pool , self._pool.release , conn._conn)
 
     async def drop(self , conn: Connection):
         return await self._loop.run_in_executor(self._thread_pool , self._pool.drop , conn)
@@ -67,8 +70,8 @@ class AsyncPoolWrapper:
         Do make sure this option works fine with your working enviornment.
         '''
         while self._occupied:
-            _conn = self._occupied.pop()
+            wrapper = self._occupied.pop()
             if interrupt:
-                await self._loop.run_in_executor(self._thread_pool , _conn.cancel)
+                await self._loop.run_in_executor(self._thread_pool , wrapper._conn.cancel)
 
         return await self._loop.run_in_executor(self._thread_pool , self._pool.close , force)

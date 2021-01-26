@@ -40,7 +40,15 @@ async def test_new_table():
             await cursor.execute(sql , (10 ,'ACCOUNTING','NEW YORK'))
             await connection.commit()
 
+            # bind vars
+            sql = "SELECT DNAME FROM DEPT WHERE DEPTNO = :dno"
+            await cursor.execute(sql , dno = 10)
+            ret = await cursor.fetchone()
+            assert ret
+            assert ret[0] == 'ACCOUNTING'
+
             # Multiple Insertion
+            sql = "INSERT INTO DEPT(DEPTNO , DNAME , LOC) VALUES (:a , :b , :c)"
             data = [
                 (30,'SALES','CHICAGO'),
                 (40,'OPERATIONS','BOSTON'),
@@ -79,3 +87,14 @@ async def test_usage():
     cursor1 = await conn1.cursor()
     async with conn1.cursor() as cursor2:
         assert type(cursor1) is type(cursor2)
+
+    conn = await oracle_pool1.acquire()
+    await conn.release()
+    conn = await oracle_pool1.acquire()
+    await oracle_pool1.release(conn)
+    
+    # test weakref
+    conn = await oracle_pool1.acquire()
+    conn = await oracle_pool1.acquire()
+    conn = await oracle_pool1.acquire()
+    assert len(oracle_pool1._occupied) == 2

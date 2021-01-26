@@ -4,6 +4,7 @@
 [![pyversions](https://img.shields.io/pypi/pyversions/cx-Oracle-async.svg)](https://pypi.org/project/cx-Oracle-async/)
 [![Publish](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Publish/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Publish)
 [![Build](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Build/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Build)
+[![Docs](https://readthedocs.org/projects/cx-oracle-async/badge/?version=latest)](https://readthedocs.org/projects/cx-oracle-async/)
 
 A very simple asynchronous wrapper that allows you to get access to the Oracle database in asyncio programs.
 
@@ -16,14 +17,18 @@ Easy to use , buy may not the best practice for efficiency concern.
 ## Install
 
     pip install cx_Oracle_async
-    
-## Usage
+
+## Feature
 - Nearly all the same as aiomysql in asynchronous operational approach , with limited cx_Oracle feature support.
 - No automaticly date format transition built-in.
-- AQ feature added , check [docs here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/docs/temporary_document_of_AQ.md) for further information.
+- AQ feature added , check [docs here](https://cx_oracle_async.readthedocs.io/en/latest/user_guide/advancedfeatures.html#oracle-advanced-queuing-aq) for further information.
 - You can modify some of the connection properties simply like you're using cx_Oracle. 
 - You can do basic insert / select / delete etc.
 - If you're connecting to database which is on a different machine from python process , you need to install oracle client module in order to use this library. Check [cx-Oracle's installation guide](https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html) for further information.
+
+## Documentation
+
+[https://cx_oracle_async.readthedocs.io](https://cx_oracle_async.readthedocs.io)
 
 ## Performance
 query type | asynchronous multithreading | synchronous multithreading | synchronous single thread
@@ -38,7 +43,7 @@ single line insertion | 1341.88 q/s | 1898 q/s | 1685.17 q/s
 *You can find performance test codes [here](https://github.com/GoodManWEN/cx_Oracle_async/blob/main/misc).*
 
 ## Examples
-Before running examples , make sure you've already installed a [oracle client](https://github.com/GoodManWEN/cx_Oracle_async#usage) on your machine.
+Before running examples , make sure you've already installed a [Oracle Client](https://cx-oracle-async.readthedocs.io/en/latest/user_guide/quickstart.html#install-oracle-client) on your machine.
 ```Python
 # basic_usages.py
 import asyncio
@@ -57,42 +62,11 @@ async def main():
 
     async with oracle_pool.acquire() as connection:
         async with connection.cursor() as cursor:
-            # single fetch 
-            sql_1 = "SELECT * FROM SCOTT.DEPT WHERE deptno = :a"
-            await cursor.execute(sql_1 , (10 , ))
-            print(await cursor.fetchone())
-            
-            # multiple inert
-            sql_2 = "INSERT INTO SCOTT.DEPT(deptno , dname) VALUES (:a , :b)"
-            sql_2_data = [
-                [60 , "Hello"],
-                [70 , "World"], 
-            ]
-            await cursor.executemany(sql_2 , sql_2_data)
-            await connection.commit()
-            
-            # multiple fetch
-            sql_3 = "SELECT * FROM SCOTT.DEPT WHERE deptno >= :a"
-            await cursor.execute(sql_3 , (60 , ))
+            await cursor.execute("SELECT * FROM V$SESSION")
             print(await cursor.fetchall())
 
     await oracle_pool.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
-```
-
-Or you can connect to database via dsn style:
-```Python
-# makedsn.py
-import asyncio
-import cx_Oracle_async
-
-async def main():
-    # same api as cx_Oracle.makedsn with 4 limited parameters(host , port , sid , service_name).
-    dsn = cx_Oracle_async.makedsn(host = 'localhost' , port = '1521' , service_name = 'orcl')
-    async with cx_Oracle_async.create_pool(user='', password='',dsn = dsn) as pool:
-        ...
-
-asyncio.run(main())
 ```

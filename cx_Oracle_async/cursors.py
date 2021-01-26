@@ -21,6 +21,11 @@ class AsyncCursorWrapper:
         self._thread_pool = thread_pool
 
     async def execute(self , sql , *args , **kwargs):
+        if kwargs:
+            return await self._loop.run_in_executor(
+                self._thread_pool , 
+                lambda : self._cursor.execute(sql , *args , **kwargs)
+            )
         return await self._loop.run_in_executor(self._thread_pool , self._cursor.execute , sql , *args , **kwargs)
 
     async def executemany(self , sql , *args , **kwargs):

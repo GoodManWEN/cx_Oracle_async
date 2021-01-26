@@ -14,7 +14,6 @@ User Guide
     user_guide/quickstart.rst
     user_guide/sqlexecution.rst
     user_guide/advancedfeatures.rst
-    user_guide/cursors.rst
 
 
 API Manual

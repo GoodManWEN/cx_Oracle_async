@@ -1,6 +1,6 @@
 Sphinx
 sphinx-autobuild
 recommonmark
-sphinx-rtd-theme
+sphinx_nameko_theme
 sphinx_markdown_tables
 cx_Oracle_async

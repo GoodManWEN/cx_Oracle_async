@@ -28,7 +28,7 @@ Wraps a cx_Oracle.Connection object.
 
 .. method:: AsyncConnectionWrapper.queue(name, payloadType=None)
 
-    Creates a :ref:`queue <queue>` which is used to enqueue and dequeue
+    Creates a queue which is used to enqueue and dequeue
     messages in Advanced Queueing.
 
     The name parameter is expected to be a string identifying the queue in

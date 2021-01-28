@@ -1,6 +1,6 @@
 ---
 name: Blank template
-about: Describe this issue template's purpose here.
+about: Start from a blank template.
 title: ''
 labels: ''
 assignees: ''

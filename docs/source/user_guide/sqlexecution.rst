@@ -23,7 +23,10 @@ Both ``execute`` and ``executemany`` are supported.
             async with conn.cursor() as cursor:
 
                 # single fetch
-                await cursor.execute("SELECT DNAME FROM SCOTT.DEPT WHERE DEPTNO = :a" , (10 , ))
+                await cursor.execute(
+                    "SELECT DNAME FROM SCOTT.DEPT WHERE DEPTNO = :a" ,
+                     (10 , )
+                )
                 print(await cursor.fetchone())
 
                 # multiple insert
@@ -36,7 +39,10 @@ Both ``execute`` and ``executemany`` are supported.
                 await conn.commit()
 
                 # multiple fetch
-                await cursor.execute("SELECT * FROM SCOTT.DEPT WHERE DEPTNO < :maximum" , maximum = 100)
+                await cursor.execute(
+                    "SELECT * FROM SCOTT.DEPT WHERE DEPTNO < :maximum" , 
+                    maximum = 100
+                )
                 print(await cursor.fetchall())
 
         await pool.close()

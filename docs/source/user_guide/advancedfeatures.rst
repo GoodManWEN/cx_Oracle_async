@@ -173,7 +173,7 @@ It is noteworthy that since we were not implement this library asynchronous in a
 
 .. code-block:: python
 
-    import cx_Oracle_async
+    from cx_Oracle_async import makedsn , create_pool
     import asyncio
 
     async def coro_to_get_from_queue(conn , queue , oracle_pool):
@@ -184,12 +184,12 @@ It is noteworthy that since we were not implement this library asynchronous in a
 
     async def main():
         loop = asyncio.get_running_loop()
-        dsn = cx_Oracle_async.makedsn(
+        dsn = makedsn(
             host = 'localhost',
             port = '1521',
             service_name='orcl'
         )
-        async with cx_Oracle_async.create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
+        async with create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
             async with oracle_pool.acquire() as conn:
                 queue = await conn.queue("DEMO_RAW_QUEUE")
                 loop.create_task(coro_to_get_from_queue(conn , queue , oracle_pool))
@@ -215,7 +215,7 @@ If you would like to achieve the same result , you should do that in **ANOTHER**
 
 .. code-block:: python
 
-    import cx_Oracle_async
+    from cx_Oracle_async import makedsn , create_pool
     import asyncio
     from async_timeout import timeout
 
@@ -238,12 +238,12 @@ If you would like to achieve the same result , you should do that in **ANOTHER**
 
     async def main():
         loop = asyncio.get_running_loop()
-        dsn = cx_Oracle_async.makedsn(
+        dsn = makedsn(
             host = 'localhost',
             port = '1521',
             service_name='orcl'
         )
-        async with cx_Oracle_async.create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
+        async with create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
             async with oracle_pool.acquire() as conn:
                 queue = await conn.queue("DEMO_RAW_QUEUE")
                 loop.create_task(coro_to_get_from_queue(conn , queue , oracle_pool))
@@ -269,18 +269,18 @@ There're two ways of calling deqMany , you can use it as a normal asynchronous c
 
 .. code-block:: python
 
-    import cx_Oracle_async
+    from cx_Oracle_async import makedsn , create_pool
     import asyncio
     import random
 
     async def main():
         loop = asyncio.get_running_loop()
-        dsn = cx_Oracle_async.makedsn(
+        dsn = makedsn(
             host = 'localhost',
             port = '1521',
             service_name='orcl'
         )
-        async with cx_Oracle_async.create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
+        async with create_pool(user = '' , password = '' , dsn = dsn) as oracle_pool:
             async with oracle_pool.acquire() as conn:
 
                 # Init and clear a queue
@@ -334,7 +334,8 @@ So taking into consideration that when argument maxMessages equals to -1 (defaul
     await queue.enqMany(queue.pack(m) for m in messages)
     await conn.commit()
 
-    # You are not clear about how large the queue size is (there's also chance it's empty)
+    # You are not clear about how large the queue size is 
+    # (there's also chance it's empty)
     # and want to take out all stuffs in it if its not empty.
     ret = []
     async for m in queue.deqMany():

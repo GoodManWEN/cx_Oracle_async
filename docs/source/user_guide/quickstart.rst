@@ -21,7 +21,7 @@ Install Oracle Client
 If you're connecting to database which is on a different machine from python process , you need to setup a oracle instanct client module in order before you use this library. Check \ `cx-Oracle's installation guide <https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#overview>`_ for further information.
 
 Basic Usage
-==============
+===========
 
 All usage in **cx_Oracle_async** based on the session pool,  **cx_Oracle_async** does not provide means you can setup a simple connection to database without pool manager.
 
@@ -91,7 +91,7 @@ You can use both context manager / non-context manager way to access your :meth:
     asyncio.run(main())
 
 Closing SessionPools
--------------------
+--------------------
 
 You can hardly run into close problem in normal use with the help of a context manager , however , if you're using some kind of nested code structure , ``SessionPool.close()`` may get ``cx_Oracle.DatabaseError: ORA-24422`` which indicates there's still some connection remaining activate when ``close`` triggered. In this perticular situation , you may need to use ``SessionPool.close(force = True)`` to ignore those error.
 

@@ -18,7 +18,7 @@ Supports python3.7 or later.
 Install Oracle Client
 =====================
 
-If you're connecting to database which is on a different machine from python process , you need to setup a oracle instanct client module in order before you use this library. Check \ `cx-Oracle's installation guide <https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#overview>`_ for further information.
+If you're connecting to database which is on a different machine from python process , you need to setup a oracle instanct client module before you use this library. Check \ `cx-Oracle's installation guide <https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#overview>`_ for further information.
 
 Basic Usage
 ===========

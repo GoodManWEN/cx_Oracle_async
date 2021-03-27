@@ -5,6 +5,7 @@
 [![Publish](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Publish/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Publish)
 [![Build](https://github.com/GoodManWEN/cx_Oracle_async/workflows/Build/badge.svg)](https://github.com/GoodManWEN/cx_Oracle_async/actions?query=workflow:Build)
 [![Docs](https://readthedocs.org/projects/cx-oracle-async/badge/?version=latest)](https://readthedocs.org/projects/cx-oracle-async/)
+[![Visitors](https://visitor-badge.glitch.me/badge?page_id=goodmanwen.cx_Oracle_async&style=flat-square&color=0088cc)](https://github.com/GoodManWEN/cx_Oracle_async/)
 
 A very simple asynchronous wrapper that allows you to get access to the Oracle database in asyncio programs.
 

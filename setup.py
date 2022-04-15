@@ -32,10 +32,14 @@ for kw in (' - GitHub', ' - GoodManWEN'):
     if ' - GitHub' in description:
         description = description[:description.index(' - GitHub')]
 html = BeautifulSoup(rget(release , headers).text ,'lxml')
-version = html.find('div',{'class':'release-header'}).find('a').text
+logger.info(f"description: {description}")
+
+#
+with open('tagname','r',encoding='utf-8') as f:
+    version = f.read()
 if ':' in version:
     version = version[:version.index(':')].strip()
-logger.info(f"description: {description}")
+version = version.strip()
 logger.info(f"version: {version}")
 
 #

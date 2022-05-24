@@ -1,4 +1,4 @@
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Engine, Connection
 from sqlalchemy import text
 from typing import Optional, Any
 from collections.abc import Iterable
@@ -70,7 +70,7 @@ class AsyncConnectionWrapper:
         finally:
             self._cross_thread_protect_thread = False
     
-    async def _get_one_impl(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
+    async def _select_one_impl(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
 
         def execute_and_fetch(conn, sql, args, executemany):
             sender = conn.execute if not executemany else conn.executemany
@@ -78,10 +78,10 @@ class AsyncConnectionWrapper:
             return cur.fetchone()
         return await self._loop.run_in_executor(self._executor, execute_and_fetch, self.connection, sql, args, executemany)
 
-    async def get_one(self, *args, **kwargs):
-        return await self.exclusionary_connection(self._get_one_impl(*args, **kwargs))
+    async def select_one(self, *args, **kwargs):
+        return await self.exclusionary_connection(self._select_one_impl(*args, **kwargs))
 
-    async def _get_all_impl(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
+    async def _select_all_impl(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
 
         def execute_and_fetch(conn, sql, args, executemany):
             sender = conn.execute if not executemany else conn.executemany
@@ -89,19 +89,19 @@ class AsyncConnectionWrapper:
             return cur.fetchall()
         return await self._loop.run_in_executor(self._executor, execute_and_fetch, self.connection, sql, args, executemany)
 
-    async def get_all(self, *args, **kwargs):
-        return await self.exclusionary_connection(self._get_all_impl(*args, **kwargs))
+    async def select_all(self, *args, **kwargs):
+        return await self.exclusionary_connection(self._select_all_impl(*args, **kwargs))
 
-    async def _modify_impl(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
+    async def _execute_and_commit_impl(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
 
-        def execute_and_commit(conn, sql, args, executemany):
+        def eac(conn, sql, args, executemany):
             sender = conn.execute if not executemany else conn.executemany
             sender(text(sql), args)
             return conn.commit()
-        return await self._loop.run_in_executor(self._executor, execute_and_commit, self.connection, sql, args, executemany)
+        return await self._loop.run_in_executor(self._executor, eac, self.connection, sql, args, executemany)
 
-    async def modify(self, *args, **kwargs):
-        return await self.exclusionary_connection(self._modify_impl(*args, **kwargs))
+    async def execute_and_commit(self, *args, **kwargs):
+        return await self.exclusionary_connection(self._execute_and_commit_impl(*args, **kwargs))
 
     async def execute(self, sql: str, args: Iterable[Any] = (), executemany: bool = False):
         return await self.exclusionary_connection(self._loop.run_in_executor(self._executor, self.connection.execute if not executemany else self.connection.executemany, text(sql), args))

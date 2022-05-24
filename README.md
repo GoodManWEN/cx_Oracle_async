@@ -11,6 +11,9 @@ A very simple asynchronous wrapper that allows you to get access to the Oracle d
 
 Easy to use , buy may not the best practice for efficiency concern.
 
+## About development release
+In parallel with the main branch, we have worked on a development version based on [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)'s thread pool management facilities, please refer to [Development notes](https://github.com/GoodManWEN/cx_Oracle_async/blob/dev/misc/Development_notes.md) for details. 
+
 ## Requirements
 - [cx_Oracle >= 8.1.0](https://github.com/oracle/python-cx_Oracle) (Take into consideration that author of cx_Oracle said he's trying to implement asyncio support , APIs maybe change in future version. Switch to 8.1.0 if there's something wrong makes it not gonna work.)
 - [ThreadPoolExecutorPlus >= 0.2.0](https://github.com/GoodManWEN/ThreadPoolExecutorPlus)

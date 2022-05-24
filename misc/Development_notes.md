@@ -1,6 +1,6 @@
 # Development notes
 
-Due to insufficiencies in the conversion of the cx_oracle's native thread pool into coroutine threads and some problems in the use of the main branch of this repository. We have opened a development branch that is intended to take advantage of existing open source projects.
+Due to insufficiencies in the conversion of the cx_oracle's native thread pool into coroutine threads and some problems in the use of the `main` branch of this repository. We have opened a development branch that is intended to take advantage of existing open source projects.
 
 [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) is a cool project. I mean, while it does have let people feel bloated at times, but overall it's still cool and has a far more sophisticated thread pool than our current solution. So we have made a simple demo that can support the basic CURD functions, using `SQLAlchemy` only to help us manage our thread pool without enabling its ORM functionality - sometimes it's better to leave the SQLs as they are.
 

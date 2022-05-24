@@ -6,7 +6,7 @@ Due to insufficiencies in the conversion of the cx_oracle's native thread pool i
 
 The new version fixes several problems mentioned by the community in issues, and adds a better connection management facility, including automatic reconnection of disconnections caused by exceptions, etc. Unfortunately the current asynchronous events are still converted from the thread pool executor, as `cx_Oracle` currently is still the only way for python to connect to oracle database. However with `SQLAlchemy`'s background thread to help us deal with the logics, we have somewhat avoided the embarrassment of frequent commits to the executor as we did originally. The new version theoretically be more efficient in terms of thread utilization as the logic previously used for creating and destroying synchronized objects has been merged extensively.
 
-If you want to install the development version, just clone the project and switch to the dev branch. Here is the code for the new version usage examples and feature demos. Despite they have not been tested in perfect detail, the logic is simple and thus should not lead to bugs. If the functions you need are not provided here, you may need to work on yourself.
+If you want to install the development version, just clone the project and switch to the `dev` branch. Here is the code for the new version usage examples and feature demos. Despite they have not been tested in perfect detail, the logic is simple and thus should not lead to bugs. If the functions you need are not provided here, you may need to work on yourself.
 
 ```python
 import cx_Oracle_async_sqlalchemy

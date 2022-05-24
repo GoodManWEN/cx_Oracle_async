@@ -31,10 +31,12 @@ class Pathcer:
             self._closing = True
             self._conn_to_close = self.pool.checkedin() + self.pool.checkedout()
 
-        def _wait_closed(self: Engine):
-            for _ in range(self._conn_to_close):
-                engine.pool._pool.get().close()
-            return
+        async def _wait_closed(self: Engine):
+            def tmp(engine):
+                for _ in range(engine._conn_to_close):
+                    engine.pool._pool.get().close()
+            coro = self._loop.run_in_executor(self._thread_pool_executor, tmp, engine)
+            return await coro
 
         engine._loop = None
         engine._closing = False
@@ -53,7 +55,7 @@ class Pathcer:
         if loop is None:
             engine._loop = loop = asyncio.get_running_loop()
         
-        if engine.pending >= engine.max_pending_allowed:
+        if engine._closing or engine.pending >= engine.max_pending_allowed:
             async def tmp():
                 return None 
             return AsyncConnectionContextManager(tmp())

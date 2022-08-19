@@ -43,6 +43,7 @@ class AsyncCursorWrapper:
     
     async def callproc(self, *args , **kwargs):
         return await self._loop.run_in_executor(self._thread_pool , self._cursor.callproc, *args , **kwargs)
-	
-	async def description(self):
-	    return self._cursor.description
+    
+    @property
+    def description(self):
+        return self._cursor.description

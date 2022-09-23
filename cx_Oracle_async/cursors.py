@@ -1,5 +1,6 @@
 from .context import AbstractContextManager as BaseManager
 from ThreadPoolExecutorPlus import ThreadPoolExecutor
+from functools import partial
 from types import CoroutineType
 from cx_Oracle import Cursor
 from typing import TYPE_CHECKING
@@ -42,4 +43,4 @@ class AsyncCursorWrapper:
         return await self._loop.run_in_executor(self._thread_pool , self._cursor.var, args)
     
     async def callproc(self, *args , **kwargs):
-        return await self._loop.run_in_executor(self._thread_pool , self._cursor.callproc, *args , **kwargs)
+        return await self._loop.run_in_executor(self._thread_pool, partial(self._cursor.callproc, *args, **kwargs))

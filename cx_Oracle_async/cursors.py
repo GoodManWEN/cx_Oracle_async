@@ -20,6 +20,10 @@ class AsyncCursorWrapper:
         self._loop = loop
         self._thread_pool = thread_pool
 
+    @property
+    def description(self):
+        return self._cursor.description
+
     async def execute(self , sql , *args , **kwargs):
         if kwargs:
             return await self._loop.run_in_executor(
@@ -37,6 +41,10 @@ class AsyncCursorWrapper:
     async def fetchall(self):
         # block mainly happens when fetch triggered.
         return await self._loop.run_in_executor(self._thread_pool , self._cursor.fetchall)
+
+    async def fetchmany(self, *args, **kwargs):
+    # block mainly happens when fetch triggered.
+        return await self._loop.run_in_executor(self._thread_pool, self._cursor.fetchmany, *args, **kwargs)
 
     async def var(self, args):
         return await self._loop.run_in_executor(self._thread_pool , self._cursor.var, args)
